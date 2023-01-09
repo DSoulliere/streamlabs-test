@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class SubscriptionController extends Controller
+class StatsController extends Controller
 {
     /**
      * Handle the incoming request.
