@@ -16,4 +16,4 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/paymentClientToken', BraintreeTokenController::class);
+
