@@ -18,5 +18,10 @@
         "tailwindcss": "^3.2.1",
         "vite": "^4.0.0",
         "vue": "^3.2.41"
+    },
+    "dependencies": {
+        "braintree-web": "^3.88.6",
+        "braintree-web-drop-in": "^1.33.7",
+        "vue-braintree": "^2.1.0"
     }
 }
