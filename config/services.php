@@ -36,7 +36,10 @@ return [
         'merchant_id' => env('BRAINTREE_MERCHANT_ID'),
         'public_key' => env('BRAINTREE_PUBLIC_KEY'),
         'private_key' => env('BRAINTREE_PRIVATE_KEY'),
-        'default_plan_id' => env('BRAINTREE_DEFAULT_PLAN_ID'),
+        'monthly_plan_id' => env('BRAINTREE_MONTHLY_PLAN_ID', 'monthly'),
+        'monthly_plan_price' => env('BRAINTREE_MONTHLY_PLAN_PRICE', 50),
+        'yearly_plan_id' => env('BRAINTREE_YEARLY_PLAN_ID', 'yearly'),
+        'yearly_plan_price' => env('BRAINTREE_YEARLY_PLAN_PRICE', 500),
     ],
 
 
