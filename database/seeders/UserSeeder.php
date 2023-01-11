@@ -21,7 +21,6 @@ class UserSeeder extends Seeder
             'name' => 'Admin',
             'email' => 'admin@admin.com',
             'password' => 'password',
-            'is_admin' => true
         ]);
 
         //Creates a default user
@@ -29,7 +28,6 @@ class UserSeeder extends Seeder
             'name' => 'User',
             'email' => 'user@user.com',
             'password' => 'password',
-            'is_admin' => false
         ]);
 
         User::factory()->count(10)->create();
