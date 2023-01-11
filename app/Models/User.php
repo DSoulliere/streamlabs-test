@@ -74,25 +74,4 @@ class User extends Authenticatable
             set: fn ($value) => Hash::make($value),
         );
     }
-
-    /**
-     * Returns whether or not the user is an administrator
-     *
-     * @return boolean
-     */
-    public function isAdmin()
-    {
-        return $this->is_admin;
-    }
-
-    /**
-     * Returns whether or not the user has been disabled
-     *
-     * @return mixed
-     */
-    public function isDisabled()
-    {
-        return $this->is_disabled;
-    }
-
 }
