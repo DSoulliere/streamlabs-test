@@ -110,20 +110,44 @@ class BraintreeService
      *
      * @return Result\Successful|Result\Error
      */
-    public function createSubscription(array $params) : Result
+    public function createSubscription(array $params)
     {
-        $paymentMethod = $this->gateway->subscription()->create($params);
+        $subscription = $this->gateway->subscription()->create($params);
 
-        return $paymentMethod;
+        return $subscription;
     }
 
 
+    /**
+     * Update a specific subscription for a customer
+     *
+     * @param string $subscriptionId the ID of the subscription to be updated
+     * @param array $params containing the request parameters* @param string $subscriptionId the ID of the subscription to be updated
+     *              ['planId'] The plan ID as defined in settings
+     *
+     * @return Subscription|Exception\NotFound
+     */
+    public function updateSubscription($subscriptionId, array $params)
+    {
+        $subscription = $this->gateway->subscription()->update($subscriptionId, $params);
+
+        return $subscription;
+    }
 
 
+    /**
+     * Cancel a specific subscription for a customer
+     *
+     * @param string $subscriptionId the ID of the subscription to be updated
+     * @param array $params containing the request parameters* @param string $subscriptionId the ID of the subscription to be updated
+     *              ['planId'] The plan ID as defined in settings
+     *
+     * @return Subscription|Exception\NotFound
+     */
+    public function cancelSubscription($subscriptionId, array $params)
+    {
+        $subscription = $this->gateway->subscription()->cancel($subscriptionId);
 
-
-
-
-
-
+        return $subscription;
+    }
 }
