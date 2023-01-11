@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Braintree\Gateway;
+use App\Http\Services\BraintreeService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -14,13 +15,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->singleton(Gateway::class, function ($app) {
-            return new Gateway([
-                'environment' => config('services.braintree.environment'),
-                'merchantId' => config("services.braintree.merchant_id"),
-                'publicKey' => config("services.braintree.public_key"),
-                'privateKey' => config("services.braintree.private_key")
-            ]);
+        $this->app->singleton(BraintreeService::class, function ($app) {
+            return new BraintreeService();
         });
     }
 
