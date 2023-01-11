@@ -9,15 +9,9 @@ class BraintreeService
 {
     private $gateway;
 
-
-    public function __construct()
+    public function __construct(array $config)
     {
-        $this->gateway = new Gateway([
-            'environment' => config('services.braintree.environment'),
-            'merchantId' => config("services.braintree.merchant_id"),
-            'publicKey' => config("services.braintree.public_key"),
-            'privateKey' => config("services.braintree.private_key")
-        ]);
+        $this->gateway = new Gateway($config);
     }
 
     /**
