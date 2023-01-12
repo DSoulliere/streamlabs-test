@@ -23,7 +23,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
+    Route::post('/payment', PaymentController::class)->name('payment');
+    Route::post('/subscription', [SubscriptionController::class, 'store'])->name('subscriptions.store');
+    Route::delete('/subscription', [SubscriptionController::class, 'destroy'])->name('subscriptions.destroy');
 
 });
 
