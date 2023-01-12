@@ -1,38 +1,132 @@
 <script setup>
 
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/inertia-vue3';
+import { Head, usePage } from '@inertiajs/inertia-vue3';
 import dropin from "braintree-web-drop-in";
 
+
+
 const props = defineProps({
-    subscribed: Boolean,
+    subscriptionId: Number,
+    planId: Number,
     token: String,
 });
 
-const form = document.getElementById('payment-form');
+
+const state = {
+    subscriptionId: props.subscriptionId,
+    planId: props.planId,
+    paymentMethodNonce: null
+};
+
+let braintreedropIn = null;
+
+function updateCustomerPayment(nonce) {
+    fetch(route('payment'), {
+        method: 'POST', // or 'PUT'
+        headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json, text-plain, */*",
+            "X-Requested-With": "XMLHttpRequest",
+            "X-CSRF-TOKEN": usePage().props.value.csrf
+        },
+        body: JSON.stringify({
+            paymentMethodNonce: nonce
+        }),
+        credentials: "same-origin",
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            console.log('Success:', data);
+            alert("You've added a new payment");
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert("There seems to have been an error");
+        });
+};
+
+function updateCustomerSubscription(planId) {
+    braintreedropIn.requestPaymentMethod((error, payload) => {
+        fetch(route('subscriptions.store'), {
+            method: 'POST', // or 'PUT'
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json, text-plain, */*",
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRF-TOKEN": usePage().props.value.csrf
+            },
+            body: JSON.stringify({
+                planId: planId,
+                paymentMethodNonce: payload.nonce,
+            }),
+            credentials: "same-origin",
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                console.log('Success:', data);
+                alert("You're now subscribed " + data.planName + ". Refresh to see changes");
+                state.planId = data.planId;
+                state.subscriptionId = data.subscriptionId;
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert("There seems to have been an error");
+            });
+    });
+
+
+};
+function cancelCustomerSubscription() {
+    if (state.subscriptionId < 1) {
+        alert("You must have a valid subscription to unsubscribe.");
+    } else {
+        fetch(route('subscriptions.destroy'), {
+            method: 'DELETE', // or 'PUT'
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json, text-plain, */*",
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRF-TOKEN": usePage().props.value.csrf
+            },
+            credentials: "same-origin",
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                console.log('Success:', data);
+                alert("You're now unsubscribed. Refresh to see changes.");
+                state.planId = 0;
+                state.subscriptionId = 0;
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert("There seems to have been an error");
+            });
+    }
+};
+
+
+
 
 dropin.create({
     authorization: props.token,
     container: '#dropin-container',
-    paypal: {
-        flow: 'vault'
-    }
+    // paypal: {
+    //     flow: 'vault'
+    // }
 }, (error, dropinInstance) => {
     if (error) console.error(error);
+
+
+    braintreedropIn = dropinInstance;
+    const form = document.getElementById('payment-form');
 
     form.addEventListener('submit', event => {
         event.preventDefault();
 
-        dropinInstance.requestPaymentMethod((error, payload) => {
-            if (error) console.error(error);
-
-            // Step four: when the user is ready to complete their
-            //   transaction, use the dropinInstance to get a payment
-            //   method nonce for the user's selected payment method, then add
-            //   it a the hidden field before submitting the complete form to
-            //   a server-side integration
-            document.getElementById('nonce').value = payload.nonce;
-            form.submit();
+        braintreedropIn.requestPaymentMethod((error, payload) => {
+            if (error) alert('There seems to be an error with the payment method');
+            updateCustomerPayment(payload.nonce);
         });
     });
 });
@@ -68,7 +162,9 @@ dropin.create({
                             </div>
 
                             <div  class="px-10 m-5">
-                                <h3 class="font-medium leading-tight text-3xl mt-0 mb-2 text-blue-600">Subscribe and get exciting an exciting new stat!</h3>
+                                <h3 class="font-medium leading-tight text-3xl mt-0 mb-2 text-blue-600">
+                                    Subscribe and get exciting an exciting new stat!
+                                </h3>
                             </div>
                         <div class="flex justify-center">
                             <div class="block rounded-lg shadow-lg bg-white max-w-sm text-center">
@@ -76,12 +172,12 @@ dropin.create({
                                     Monthly
                                 </div>
                                 <div class="p-6">
-                                    <h5 class="text-gray-900 text-xl font-medium mb-2">$5 / mo</h5>
+                                    <h5 class="text-gray-900 text-xl font-medium mb-2">$50 / mo</h5>
                                     <p class="text-gray-700 text-base mb-4">
                                         Instead of paying us every year, pay us  month instead!
                                     </p>
-                                    <button type="button"
-                                        class=" inline-block px-6 py-2.5 bg-blue-600 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-blue-700 hover:shadow-lg focus:bg-blue-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg transition duration-150 ease-in-out">Button</button>
+                                    <button type="button" @click="updateCustomerSubscription('monthly')" id="monthlyPayment"
+                                        class=" inline-block px-6 py-2.5 bg-blue-600 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-blue-700 hover:shadow-lg focus:bg-blue-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg transition duration-150 ease-in-out">Subscribe Monthly</button>
                                 </div>
                             </div>
 
@@ -91,12 +187,12 @@ dropin.create({
                                     Yearly
                                 </div>
                                 <div class="p-6">
-                                    <h5 class="text-gray-900 text-xl font-medium mb-2">$80 / y</h5>
+                                    <h5 class="text-gray-900 text-xl font-medium mb-2">$500 / y</h5>
                                     <p class="text-gray-700 text-base mb-4">
                                         Pay us more money but just once every 365 days!
                                     </p>
-                                    <button type="button"
-                                        class=" inline-block px-6 py-2.5 bg-blue-600 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-blue-700 hover:shadow-lg focus:bg-blue-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg transition duration-150 ease-in-out">Button</button>
+                                    <button type="button" id="yearlyPayment" @click="updateCustomerSubscription('yearly')"
+                                        class=" inline-block px-6 py-2.5 bg-green-600 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-green-700 hover:shadow-lg focus:bg-green-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-red-800 active:shadow-lg transition duration-150 ease-in-out">Subscribe Yearly</button>
                                 </div>
                             </div>
 
@@ -105,12 +201,12 @@ dropin.create({
                                     Cancel
                                 </div>
                                 <div class="p-6">
-                                    <h5 class="text-gray-900 text-xl font-medium mb-2">$80 / y</h5>
+                                    <h5 class="text-gray-900 text-xl font-medium mb-2">$0 / y</h5>
                                     <p class="text-gray-700 text-base mb-4">
                                         You have decided to stop giving us money.
                                     </p>
-                                    <button type="button"
-                                        class=" inline-block px-6 py-2.5 bg-blue-600 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-blue-700 hover:shadow-lg focus:bg-blue-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg transition duration-150 ease-in-out">Button</button>
+                                    <button type="button" @click="cancelCustomerSubscription()"
+                                        class=" inline-block px-6 py-2.5 bg-red-600 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-red-700 hover:shadow-lg focus:bg-red-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-red-800 active:shadow-lg transition duration-150 ease-in-out">Button</button>
                                 </div>
                             </div>
 
@@ -118,10 +214,17 @@ dropin.create({
 
                         </div>
                         <div class="px-10 m-5">
-                            <h3 class="font-medium leading-tight text-3xl mt-0 mb-2 text-blue-600">Advanced stats stat!</h3>
+                            <h3 class="font-medium leading-tight text-3xl mt-0 mb-2 text-blue-600">
+                                Advanced stream stat!
+                                Current Subscription:
+
+                                <span v-if="state.planId === 1">Monthly. You see kills!</span>
+                                <span v-if="state.planId === 2">Yearly. You see kills and  for longer!</span>
+                                <span v-if="state.planId < 1">Not Subscribed. You see no kills</span>
+                            </h3>
                         </div>
                             <!--If Not Subscribed-->
-                            <div class="py-2 inline-block min-w-full sm:px-6 lg:px-8"  v-if="subscribed === false">
+                            <div class="py-2 inline-block min-w-full sm:px-6 lg:px-8"  v-if="state.planId < 1">
                                 <div class="overflow-hidden">
                                     <table class="min-w-full">
                                         <thead class="border-b">
@@ -201,8 +304,8 @@ dropin.create({
                                 </div>
                             </div>
 
-                            <!--If Not Subscribed-->
-                            <div class="py-2 inline-block min-w-full sm:px-6 lg:px-8" v-if="subscribed === true">
+                            <!--If Subscribed-->
+                            <div class="py-2 inline-block min-w-full sm:px-6 lg:px-8" v-if="state.planId > 0">
                                 <div class="overflow-hidden">
                                     <table class="min-w-full">
                                         <thead class="border-b">
