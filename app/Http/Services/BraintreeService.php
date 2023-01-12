@@ -20,9 +20,9 @@ class BraintreeService
      *
      * @return Result\Successful|Result\Error
      */
-    public function generateClientToken()
+    public function generateClientToken(array $params = [])
     {
-        $clientToken = $this->gateway->clientToken()->generate();
+        $clientToken = $this->gateway->clientToken()->generate($params);
 
         return $clientToken;
     }
@@ -34,12 +34,29 @@ class BraintreeService
      *
      * @return Result\Successful|Result\Error
      */
-    public function createCustomer(array $params)
+    public function createCustomer(array $params = [])
     {
-        $customer = $this->gateway->customer()->create([$params]);
+        $customer = $this->gateway->customer()->create($params);
+
+        return $customer->customer;
+    }
+
+
+    /**
+     * Create a customer with the provided information
+     *
+     * @param array $customerId customer id
+     *
+     * @return Result\Successful|Result\Error
+     */
+    public function getCustomer($customerId)
+    {
+        $customer = $this->gateway->customer()->find($customerId);
 
         return $customer;
     }
+
+
 
     /**
      * Update a customer with the provided information
@@ -53,7 +70,7 @@ class BraintreeService
     {
         $customer = $this->gateway->customer()->update($customerId, $params);
 
-        return $customer;
+        return $customer->customer;
     }
 
 
@@ -91,6 +108,23 @@ class BraintreeService
         return $paymentMethod;
     }
 
+
+    /**
+     * Delete a payment method for a customer
+     *
+     * @param string $token   payment method identifier
+     *
+     * @return Result\Successful|Result\Error
+     */
+    public function deletePaymentMethod($token)
+    {
+        $paymentMethod = $this->gateway->paymentMethod()->delete($token);
+
+        return $paymentMethod;
+    }
+
+
+
     /**
      * Create a subscription for the customer associated with the nonce or token
      *
@@ -121,11 +155,15 @@ class BraintreeService
      *
      * @return Subscription|Exception\NotFound
      */
-    public function updateSubscription($subscriptionId, array $params)
+    public function createOrUpdateSubscription($subscriptionId = null, array $params)
     {
-        $subscription = $this->gateway->subscription()->update($subscriptionId, $params);
+        if (empty($subscriptionId)) {
+            $subscription = $this->gateway->subscription()->create($params);
+        } else {
+            $subscription = $this->gateway->subscription()->update($subscriptionId, $params);
+        }
 
-        return $subscription;
+        return $subscription->subscription;
     }
 
 
@@ -138,7 +176,7 @@ class BraintreeService
      *
      * @return Subscription|Exception\NotFound
      */
-    public function cancelSubscription($subscriptionId, array $params)
+    public function cancelSubscription($subscriptionId)
     {
         $subscription = $this->gateway->subscription()->cancel($subscriptionId);
 
