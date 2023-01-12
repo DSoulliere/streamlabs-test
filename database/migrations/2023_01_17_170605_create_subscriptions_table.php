@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('subscription_id')->unique();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('plan_id')->constrained()->cascadeOnDelete();;
+            $table->timestamps();
         });
     }
 
