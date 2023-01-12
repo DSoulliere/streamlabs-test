@@ -20,9 +20,18 @@ class StatsController extends Controller
      */
     public function edit(Request $request, BraintreeService $braintreeService) : Response
     {
+        $user =  auth()->user();
+        if (empty($user->customer_id)) {
+            $user->customer_id = $braintreeService->createCustomer()->id;
+            $user->save();
+        }
+        ;
         return Inertia::render('Stats', [
-            'subscribed' => false,
-            'token' => $braintreeService->generateClientToken()
+            'token' => $braintreeService->generateClientToken([
+                'customerId' => $user->customer_id
+            ]),
+            'subscriptionId' => $user->subscription->subscription_id ?? false,
+            'planId' => $user->subscription->plan_id ?? null,
         ]);
     }
 }
