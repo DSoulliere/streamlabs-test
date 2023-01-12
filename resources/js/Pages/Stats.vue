@@ -111,9 +111,9 @@ function cancelCustomerSubscription() {
 dropin.create({
     authorization: props.token,
     container: '#dropin-container',
-    // paypal: {
-    //     flow: 'vault'
-    // }
+    paypal: {
+        flow: 'vault'
+    }
 }, (error, dropinInstance) => {
     if (error) console.error(error);
 
